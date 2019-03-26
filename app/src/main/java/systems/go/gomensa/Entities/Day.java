@@ -1,10 +1,11 @@
 package systems.go.gomensa.Entities;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
 import systems.go.gomensa.Entities.Dish;
 
-public class Day {
+public class Day implements Serializable {
 	
 	String date;
 	

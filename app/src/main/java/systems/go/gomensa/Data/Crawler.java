@@ -1,5 +1,7 @@
 package systems.go.gomensa.Data;
 
+import android.app.Activity;
+import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
 
@@ -12,6 +14,7 @@ import java.util.ArrayList;
 
 import systems.go.gomensa.Entities.Day;
 import systems.go.gomensa.Entities.Dish;
+import systems.go.gomensa.Interface.MainActivity;
 
 public class Crawler extends AsyncTask<String, Void, String> {
 
@@ -20,6 +23,20 @@ public class Crawler extends AsyncTask<String, Void, String> {
     final String TAG = "MensaApp Class: Crawler";
     ArrayList<Day> daysA = new ArrayList<>();
     ArrayList<Day> daysB = new ArrayList<>();
+    Activity activity;
+
+    public Crawler(TaskListener listener){
+        this.taskListener = listener;
+    }
+
+    // TASK LISTENER FOR CALLBACK TO UI
+
+    public interface TaskListener {
+        public void onFinished(String result);
+    }
+
+    private final TaskListener taskListener;
+
 
     @Override
     protected String doInBackground(String... params) {
@@ -29,7 +46,9 @@ public class Crawler extends AsyncTask<String, Void, String> {
         //------------------------------------------------------------------------------------------
 
         try {
+            Log.v(TAG, "Starting A Mensa Crawl");
             Document doc = Jsoup.connect(mensaURL).get();
+            Log.v(TAG, doc.toString());
             Elements dayTables = doc.getElementsByTag("tbody");			//Get all tbodys which contain the menu
 
             for(Element dayTable: dayTables) {
@@ -91,10 +110,17 @@ public class Crawler extends AsyncTask<String, Void, String> {
 
     @Override
     protected void onPostExecute(String result) {
-        Dao dao = new Dao();
-        dao.updateMensa(daysA);
-        dao.updateMensaB(daysB);
-        Log.v(TAG,"Crawler executed");
+        super.onPostExecute(result);
+
+        Dao.getInstance().updateMensa(daysA);
+        Dao.getInstance().updateMensaB(daysB);
+
+        // In onPostExecute we check if the listener is valid
+        if(this.taskListener != null) {
+
+            // And if it is we call the callback function on it.
+            this.taskListener.onFinished(result);
+        }
     }
 
     @Override

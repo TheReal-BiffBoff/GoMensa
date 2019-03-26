@@ -1,6 +1,8 @@
 package systems.go.gomensa.Entities;
 
-public class Dish {
+import java.io.Serializable;
+
+public class Dish implements Serializable {
 
 	public String title;
 	public String prices;

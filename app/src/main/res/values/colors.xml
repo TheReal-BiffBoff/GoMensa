@@ -3,4 +3,5 @@
     <color name="colorPrimary">#469cff</color>
     <color name="colorPrimaryDark">#0075d6</color>
     <color name="colorAccent">#ff357f</color>
+    <color name="daySeperatorFont">#ffffff</color>
 </resources>
