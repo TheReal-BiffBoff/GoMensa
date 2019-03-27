@@ -1,20 +1,17 @@
 package systems.go.gomensa.Data;
 
 import android.app.Activity;
-import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
+import android.widget.Toast;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-
 import java.util.ArrayList;
-
 import systems.go.gomensa.Entities.Day;
 import systems.go.gomensa.Entities.Dish;
-import systems.go.gomensa.Interface.MainActivity;
 
 public class Crawler extends AsyncTask<String, Void, String> {
 
@@ -23,7 +20,6 @@ public class Crawler extends AsyncTask<String, Void, String> {
     final String TAG = "MensaApp Class: Crawler";
     ArrayList<Day> daysA = new ArrayList<>();
     ArrayList<Day> daysB = new ArrayList<>();
-    Activity activity;
 
     public Crawler(TaskListener listener){
         this.taskListener = listener;
@@ -32,7 +28,7 @@ public class Crawler extends AsyncTask<String, Void, String> {
     // TASK LISTENER FOR CALLBACK TO UI
 
     public interface TaskListener {
-        public void onFinished(String result);
+        void onFinished(String result);
     }
 
     private final TaskListener taskListener;
@@ -71,6 +67,7 @@ public class Crawler extends AsyncTask<String, Void, String> {
             }
 
         } catch (Exception e) {
+            //TODO: Add error output (As Toast)
             Log.v(TAG, String.valueOf(e));
         }
 
@@ -101,10 +98,11 @@ public class Crawler extends AsyncTask<String, Void, String> {
                 }
             }
         } catch (Exception e) {
+            //TODO: Add error output (As Toast)
             Log.v(TAG, String.valueOf(e));
         }
 
-        return "Executed";
+        return "Executed";   //TODO: change return to failed if failure happened
     }
 
 
@@ -112,13 +110,17 @@ public class Crawler extends AsyncTask<String, Void, String> {
     protected void onPostExecute(String result) {
         super.onPostExecute(result);
 
-        Dao.getInstance().updateMensa(daysA);
-        Dao.getInstance().updateMensaB(daysB);
+        //Don't update if there are no elements in day arrays
+        if(daysA.size() > 0){
+            Dao.getInstance().updateMensa(daysA);
+        }
 
-        // In onPostExecute we check if the listener is valid
+        if(daysB.size() > 0){
+            Dao.getInstance().updateMensaB(daysB);
+        }
+
+        // Check if listener is valid
         if(this.taskListener != null) {
-
-            // And if it is we call the callback function on it.
             this.taskListener.onFinished(result);
         }
     }

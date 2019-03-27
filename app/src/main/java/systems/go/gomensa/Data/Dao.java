@@ -1,31 +1,19 @@
 package systems.go.gomensa.Data;
 
-import android.content.Context;
 import android.content.SharedPreferences;
-import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
-import android.widget.ScrollView;
-import android.widget.TextView;
-
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
-
 import systems.go.gomensa.Entities.Day;
 import systems.go.gomensa.Entities.Dish;
 import systems.go.gomensa.Interface.MainActivity;
-import systems.go.gomensa.R;
 
 public class Dao {
-    final String TAG = "DAO";
-    final String MENSA_FILE = "goMensaA";
-    final String MENSAB_FILE = "goMensaB";
-    Context context;
-
-    //TODO: Implement sqLite Room Database for storage
+    private final String TAG = "DAO";
+    private final String MENSA_PREF = "goMensaA";
+    private final String MENSAB_PREF = "goMensaB";
 
     private ArrayList<Day> aMensaDays = new ArrayList<>();
     private ArrayList<Day> bMensaDays = new ArrayList<>();
@@ -44,28 +32,66 @@ public class Dao {
     }
 
     //----------------------------------------------------------------------------------------------
+    // UPDATE FUNCTIONS
+    //----------------------------------------------------------------------------------------------
 
     public void updateMensa(ArrayList<Day> days){
         aMensaDays = days;
-        // save the task list to preference
+        storeJson(MENSA_PREF, days);
         logAll(days);
     }
 
     public void updateMensaB(ArrayList<Day> days){
         bMensaDays = days;
+        storeJson(MENSAB_PREF, days);
         logAll(days);
     }
 
     //----------------------------------------------------------------------------------------------
+    // JSON STORAGE
+    //----------------------------------------------------------------------------------------------
+
+    public void storeJson(String key, ArrayList<Day> values) {
+        Gson gson = new Gson();
+        String jsonObject = gson.toJson(values);
+
+        SharedPreferences.Editor editor = MainActivity.preferences.edit();
+        editor.putString(key, jsonObject);
+        editor.commit();
+        Log.v(TAG, jsonObject);
+    }
+
+    public ArrayList<Day> loadJson(String key){
+        SharedPreferences sharedPref = MainActivity.preferences;    //Load from shared pref
+        String json = sharedPref.getString(key, "");
+        Gson gson = new Gson();                                     //JSON to Array List
+        Type type = new TypeToken<ArrayList<Day>>(){}.getType();
+
+        return gson.fromJson(json, type);
+    }
+
+    //----------------------------------------------------------------------------------------------
+    // GET FUNCTIONS
+    //----------------------------------------------------------------------------------------------
 
     public ArrayList<Day> getMensaA(){
+        if(aMensaDays.size() == 0){
+            aMensaDays = loadJson(MENSA_PREF);
+        }
+
         return aMensaDays;
     }
 
     public ArrayList<Day> getMensaB(){
+        if(bMensaDays.size() == 0){
+            bMensaDays = loadJson(MENSAB_PREF);
+        }
+
         return bMensaDays;
     }
 
+    //----------------------------------------------------------------------------------------------
+    // LOG HELPER FOR TESTING PURPOSES
     //----------------------------------------------------------------------------------------------
 
     public void logAll(ArrayList<Day> days){

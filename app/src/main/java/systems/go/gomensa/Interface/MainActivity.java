@@ -1,6 +1,7 @@
 package systems.go.gomensa.Interface;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.support.design.widget.TabLayout;
 import android.support.v7.app.AppCompatActivity;
 
@@ -29,18 +30,23 @@ public class MainActivity extends AppCompatActivity {
     private PagerAdapter adapter;
     private static String TAG = "MENSAMAIN";
 
+    public static SharedPreferences preferences;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        preferences = getSharedPreferences( getPackageName() + "_preferences", MODE_PRIVATE);
 
         //Page Adapter for swiping pages:
         mSectionsPageAdapter = new PagerAdapter(getSupportFragmentManager());
-        mViewPager = (ViewPager) findViewById(R.id.container);
+        mViewPager = findViewById(R.id.container);
         setupViewPager(mViewPager);
 
         //Init tab layout:
-        TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
+        TabLayout tabLayout = findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(mViewPager);
 
         //Refresh button calls crawler
@@ -90,13 +96,18 @@ public class MainActivity extends AppCompatActivity {
 
     private void refreshFragmentContents(){
         Log.v(TAG, "Refreshing fragment contents");
-        LinearLayout amensaList = adapter.getItem(0).getView().findViewById(R.id.container);
-        LinearLayout bmensaList = adapter.getItem(1).getView().findViewById(R.id.container);
-        amensaList.removeAllViews();
-        bmensaList.removeAllViews();
-        fillDishList(amensaList, Dao.getInstance().getMensaA());
-        fillDishList(bmensaList, Dao.getInstance().getMensaB());
-        Toast.makeText(this, "Guten Hunger! ;)", Toast.LENGTH_SHORT).show();
+        try{
+            LinearLayout amensaList = adapter.getItem(0).getView().findViewById(R.id.container);
+            LinearLayout bmensaList = adapter.getItem(1).getView().findViewById(R.id.container);
+            amensaList.removeAllViews();
+            bmensaList.removeAllViews();
+            fillDishList(amensaList, Dao.getInstance().getMensaA());
+            fillDishList(bmensaList, Dao.getInstance().getMensaB());
+            Toast.makeText(this, "Guten Hunger! ;)", Toast.LENGTH_SHORT).show();    //TODO: Don't show if loading failed
+        }catch (NullPointerException e){
+            Toast.makeText(this, "Whoops, da ist was schief gelaufen :/", Toast.LENGTH_SHORT).show();
+        }
+
     }
 
     public void fillDishList(LinearLayout list, ArrayList<Day> days){
@@ -115,8 +126,8 @@ public class MainActivity extends AppCompatActivity {
 
     private View createDishElement(Dish dish){
         View view = getLayoutInflater().inflate(R.layout.dish, null);
-        TextView title = (TextView) view.findViewById(R.id.dish_title);
-        TextView prices = (TextView) view.findViewById(R.id.dish_prices);
+        TextView title = view.findViewById(R.id.dish_title);
+        TextView prices = view.findViewById(R.id.dish_prices);
 
         title.setText(dish.title);
         prices.setText(dish.prices);
@@ -126,7 +137,7 @@ public class MainActivity extends AppCompatActivity {
 
     private View createDaySeperatorElement(String dateStr){
         View view = getLayoutInflater().inflate(R.layout.day_seperator, null);
-        TextView date = (TextView) view.findViewById(R.id.date);
+        TextView date = view.findViewById(R.id.date);
         date.setText(dateStr);
         return view;
     }
